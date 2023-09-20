@@ -31,11 +31,14 @@ public class Task1 {
 
   public static void main(String[] args) {
     comm.connectToRPi();
-    imageAPI.clearDir();
+//    imageAPI.clearDir();
 
     String receiveMsg = null;
 
-    recvObstacles(); // Receive the obstacles command from android
+
+    recvObstacles(); // Receive the obstacles command from androidx
+
+    System.out.println("Receieve msg: " + receiveMsg);
 
     int[] path = fast.AStarPath();
     System.out.println("Algorithm ready, waiting for start signal... " + "\n");
@@ -211,12 +214,18 @@ public class Task1 {
   }
 
 
+  /**
+   * Get obstacle list from android
+   *
+   */
   private static void recvObstacles() {
     String receiveMsg = null;
     System.out.println("Waiting to receive obstacle list...");
+
     while (receiveMsg == null || !receiveMsg.startsWith("ALG")) {
       receiveMsg = comm.recieveMsg();
     }
+
     System.out.println("Received Obstacles String: " + receiveMsg + "\n");
 
     String[] positions = receiveMsg.split("\\|");

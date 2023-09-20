@@ -64,7 +64,7 @@ public class GUISimulator extends Application {
     private static PlanPath planPath;
     private static ArenaMap arenaMap = null;
     private final int width = ArenaConst.ARENA_SIZE;
-    private final int scale = Integer.valueOf(GUIConstant.SIZE);
+    private final int scale = Integer.valueOf(GUIConstant.SIZE * 1 * 2);
     private final int size = width * scale;
     private final int arenaSIze = size / ((ArenaConst.ARENA_SIZE / ArenaConst.OBS_SIZE)
             + ArenaConst.BORDER_SIZE * 2);

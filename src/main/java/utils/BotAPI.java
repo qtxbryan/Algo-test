@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BotAPI {
 
-  private final String BASE_URL = "http://192.168.15.1:3000"; // IP of RPI
+  private final String BASE_URL = "http://192.168.10.106:3000"; // IP of RPI
   private final OkHttpClient client = new OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.SECONDS)
       .writeTimeout(10, TimeUnit.SECONDS)

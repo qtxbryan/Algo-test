@@ -40,6 +40,7 @@ public class MsgMgr {
 
 
   public boolean endConnection() {
+    System.out.println("Ending connection");
     try {
       socket.close();
       writer.close();
@@ -80,14 +81,19 @@ public class MsgMgr {
 
   public String recieveMsg() {
     String msg = null;
+
     try {
+      System.out.println("reading");
       msg = reader.readLine();
+//      msg = "ALG|5,5,N|7,9,E";
+      System.out.println("msg:" + msg);
       return msg;
     } catch (IOException e) {
       e.printStackTrace();
     } catch (Exception e) {
       e.printStackTrace();
     }
+    System.out.println("Failed reading");
     return null;
   }
 }

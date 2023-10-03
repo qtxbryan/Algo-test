@@ -11,20 +11,32 @@ import java.util.stream.IntStream;
 
 public class AStarPath {
 
-    private final ArenaMap arenaMap;
+    private final ArenaMap arenaMap; // map of arena with obstacles and bot
 
+    /*
+    AStarPath
+    - initialise arena map
+     */
     public AStarPath(ArenaMap arenaMap) {
         this.arenaMap = arenaMap;
     }
 
 
-    public int[] AStarPath() {
+    /*
+    AStarPath()
+    - uses multithreading to find path cost of each permutation, then returns shortest path
+    - indexArray: obstacles indexes
+    - permutation: possible sequence for visiting obstacles
+     */
+    public int[] AStarPath(boolean good) {
         ArrayList<Obstacle> list = ArenaMap.getObstacles();
         int[] indexArray = IntStream.range(0, list.size()).toArray();
         List<int[]> permutations = getPermutations(
                 indexArray);
         double smallestCost = Double.MAX_VALUE;
         int[] shortestPath = permutations.get(0);
+        double largestCost = Double.MAX_VALUE;
+        int[] otherPath = permutations.get(0);
         int numOfThreads = 6;
 
         int size = permutations.size();
@@ -48,6 +60,10 @@ public class AStarPath {
                             smallestCost = runnables[j].getTotalCost();
                             shortestPath = runnables[j].getPath();
                         }
+                        if (runnables[j].getTotalCost() > largestCost) {
+                            largestCost = runnables[j].getTotalCost();
+                            otherPath = runnables[j].getPath();
+                        }
                     } catch (Exception e) {
                         System.out.println("Exception occurred while joining thread: " + e);
                     }
@@ -55,10 +71,20 @@ public class AStarPath {
             }
         }
         System.out.println("Shortest path cost: " + smallestCost);
-        return shortestPath;
+        if (good) {
+            return shortestPath;
+        }
+        else {
+            return otherPath;
+        }
     }
 
 
+    /*
+    getPermutations()
+    - returns possible sequences for visiting obstacles
+    - obstacle indexes are labelled as nodes
+     */
     private List<int[]> getPermutations(int[] nodes) {
         List<int[]> permutations = new ArrayList<>();
         allPermutations(nodes, permutations, nodes.length);
@@ -66,6 +92,10 @@ public class AStarPath {
     }
 
 
+    /*
+    swap()
+    - swap items in array
+     */
     private void swap(int[] array, int index1, int index2) {
         int temp = array[index1];
         array[index1] = array[index2];
@@ -73,6 +103,10 @@ public class AStarPath {
     }
 
 
+    /*
+    allPermutations()
+    - uses recursion to add permutations to list
+     */
     private void allPermutations(int[] permutation, List<int[]> permutations, int n) {
         if (n <= 0) {
             permutations.add(permutation);

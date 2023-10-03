@@ -5,6 +5,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class ImageAPI {
 
   //    private final String BASE_URL = "http://127.0.0.1:5000"; // localhost
-  private final String BASE_URL = "http://127.0.0.1:3000"; // server
+//  private final String BASE_URL = "http://127.0.0.1:3000"; // server
+  private final String BASE_URL = "http://127.0.0.1:8003";
   private final OkHttpClient client = new OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.SECONDS)
       .writeTimeout(10, TimeUnit.SECONDS)
@@ -30,11 +32,10 @@ public class ImageAPI {
   public List<String> detect() {
     System.out.println("Sending GET request...");
 
-    Request get_request = buildGetRequest("/detect_image");
+    Request get_request = buildGetRequest("/single_inference");
     String responseStr = executeRequest(get_request);
     System.out.println(responseStr);
-
-    return List.of(responseStr.split(" ", -1));
+    return List.of(responseStr.split(", ", -1));
   }
 
   public void combineImages() {

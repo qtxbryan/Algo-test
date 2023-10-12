@@ -85,7 +85,7 @@ public class Task1 {
 
 
   private static void sendMovesToRobot(ArrayList<MoveInterface> moveList, int i) {
-    int tryCount = 2;
+    int tryCount = 1;
     ArrayList<MoveInterface> backwardMoveList;
     int[] coords;
 
@@ -95,17 +95,15 @@ public class Task1 {
 
     sendToRobot(commandsToSend);
     List<String> obj = imageAPI.detect();
-    System.out.println("obj is " + obj);
 
-//    while ((obj == null || obj.get(0).equals("Bullseye"))
-//    || obj == null && tryCount > 0) {
-//    UNCOMMENT WHEN DONE
-    while (obj.get(0).equals("[]") && tryCount > 0) {
+    while (obj.get(0).equals("\"[]\"") && tryCount > 0) {
+      System.out.println("Try reversing since no image");
       tryCount--;
 
       coords = algo.getFinalPosition();
       backwardCoords = algo.getReversePos(coords[0], coords[1], coords[2] / 90);
       if (backwardCoords == null) {
+        System.out.println("Reversing is not possible");
         break;
       }
       System.out.println("Reversing to retake picture...");
@@ -134,10 +132,7 @@ public class Task1 {
     for (MoveInterface move : moveList) {
       int measure = 0;
       if (move.isStraightLineMovement()) {
-        // indoors
         measure = (int) move.getLength();
-        // outdoors
-//        measure = (int) move.getLength() * 1.5;
         if (measure == 200) {
           commandsToSend += "w " + DistanceBeforeObstacle + ",";
         } else {
@@ -203,6 +198,7 @@ public class Task1 {
     if (image.size() >= 5) {
       imageId = image.get(4).replace("\"", "");
       imageId = imageId.replace("\\", "");
+      System.out.println("Detected image: " + MsgConst.translateImage(Integer.parseInt(imageId)));
     }
     else {
       imageId = "NULL";

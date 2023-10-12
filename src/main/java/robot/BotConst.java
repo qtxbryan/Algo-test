@@ -16,17 +16,17 @@ public class BotConst {
     public static final int TURN_COST_90 = 60;
     public static final int MAX_COST = Integer.MAX_VALUE;
 
-//    INDOOR
-    public static final double LEFT_TURN_RADIUS_Y = 18;
-    public static final double LEFT_TURN_RADIUS_X = 33;
-    public static final double RIGHT_TURN_RADIUS_Y = 25;
-    public static final double RIGHT_TURN_RADIUS_X = 39;
+//    WORKING INDOOR
+//    public static final double LEFT_TURN_RADIUS_Y = 13;
+//    public static final double LEFT_TURN_RADIUS_X = 27;
+//    public static final double RIGHT_TURN_RADIUS_Y = 22;
+//    public static final double RIGHT_TURN_RADIUS_X = 37;
 
-//    OUTDOOR
-//    public static final double LEFT_TURN_RADIUS_Y = 14;
-//    public static final double LEFT_TURN_RADIUS_X = 28;
-//    public static final double RIGHT_TURN_RADIUS_Y = 19;
-//    public static final double RIGHT_TURN_RADIUS_X = 32;
+    // WORKING OUTDOOR
+    public static final double LEFT_TURN_RADIUS_Y = 13;
+    public static final double LEFT_TURN_RADIUS_X = 30;
+    public static final double RIGHT_TURN_RADIUS_Y = 20;
+    public static final double RIGHT_TURN_RADIUS_X = 35;
 
     public static final double MOVE_SPEED = 100;
 

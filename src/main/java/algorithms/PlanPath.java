@@ -639,31 +639,38 @@ public class PlanPath {
         - returns True is aft/before turn position if valid, no obstacles, etc.
          */
         private boolean isValidTurnLocation(int x, int y, int dim) {
-//            allows outside of arena if <= or >= used
-//            if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
-//                if (y >= ArenaConst.BORDER_SIZE
-//                        && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//          open arena
+        //    if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+        //        if (y >= ArenaConst.BORDER_SIZE
+        //                && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//          closed arena
             if (x > ArenaConst.BORDER_SIZE && x < gridCount - ArenaConst.BORDER_SIZE - 1) {
                 if (y > ArenaConst.BORDER_SIZE
                         && y < gridCount - ArenaConst.BORDER_SIZE - 1) {
                     int overlap = 0;
                     for (int x_test = 0; x_test < 3; x_test++) {
                         for (int y_test = 0; y_test < 3; y_test++) {
-                            if (y+y_test-1 >= 0 && x+x_test-1 >= 0 && y+y_test-1 <= gridCount-1 && x+x_test-1 <= gridCount-1) {
-                                Grid n = grid[y + y_test - 1][x + x_test - 1][dim];
-                                if (!viableGrid(n)) {
-                                    overlap += 1;
-                                }
-                            }
-                            else {
-                                return false;
-                            }
+//                          try this
+//                            if (x + x_test - 1 >= ArenaConst.BORDER_SIZE
+//                                    && x + x_test - 1 <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//                                if (y + y_test - 1 >= ArenaConst.BORDER_SIZE
+//                                        && y + y_test - 1 <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+                                    Grid n = grid[y + y_test - 1][x + x_test - 1][dim];
+                                    if (n.isPicture()) {
+                                        return false;
+                                    } else if (x_test == 1 && y_test == 1 && n.isVisited()) {
+                                        return false;
+                                    } else if (n.isVirtualObstacle()) {
+                                        overlap += 1;
+                                    }
+//                                }
+//                            }
+//                          if (!viableGrid(n)) {
+//                              overlap += 1;
+//                          }
                         }
                     }
-                    if (overlap > 1) {
-                        return false;
-                    }
-                    return true;
+                    return overlap <= 1;
                 }
             }
             return false;
@@ -674,10 +681,12 @@ public class PlanPath {
     - returns True is position if valid, no obstacles, etc.
      */
     private boolean isValidLocation(int x, int y, int dim) {
-//            allows outside of arena if <= or >= used
-//        if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
-//            if (y >= ArenaConst.BORDER_SIZE
-//                    && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//        open arena
+    //    if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+    //        if (y >= ArenaConst.BORDER_SIZE
+    //                && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+
+//        closed arena
                 if (x > ArenaConst.BORDER_SIZE && x < gridCount - ArenaConst.BORDER_SIZE - 1) {
                     if (y > ArenaConst.BORDER_SIZE
                             && y < gridCount - ArenaConst.BORDER_SIZE - 1) {
@@ -872,9 +881,10 @@ public class PlanPath {
          */
         private boolean canGo(int x, int y, int dim) {
 //            open arena
-//                if (x >= 0 && x < gridCount && y >= 0 && y < gridCount) {
+            //    if (x >= 0 && x < gridCount && y >= 0 && y < gridCount) {
 //            closed arena
                 if (x > 0 && x < gridCount-1 && y > 0 && y < gridCount-1) {
+//              ignore this
 //                    for (int x_test = 0; x_test < 3; x_test++) {
 //                        for (int y_test = 0; y_test < 3; y_test++) {
 //                            Grid n = grid[y+y_test-1][x+x_test-1][dim];
@@ -884,6 +894,7 @@ public class PlanPath {
 //                        }
 //                    }
 //                    return true;
+//              ignore until here
                     Grid n = grid[y][x][dim];
                     return !n.isPicture() && !n.isVirtualObstacle();
                 } else {

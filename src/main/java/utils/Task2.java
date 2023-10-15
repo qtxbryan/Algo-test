@@ -225,7 +225,7 @@ public class Task2 {
         moves += ",f 0 " + diff;
       }
       else if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y > 35) {
-        diff = (int) (35 - BotConst.RIGHT_TURN_RADIUS_X - BotConst.LEFT_TURN_RADIUS_Y);
+        diff = (int) (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y-35);
         moves += ",f 1 " + diff;
       }
       moves += ",t 2 90,w 0 30";
@@ -244,7 +244,7 @@ public class Task2 {
         moves += ",f 0 " + diff;
       }
       else if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y > 35) {
-        diff = (int) (35 - BotConst.LEFT_TURN_RADIUS_X - BotConst.RIGHT_TURN_RADIUS_Y);
+        diff = (int) (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y-35);
         moves += ",f 1 " + diff;
       }
       moves += ",t 3 90,w 0 30";

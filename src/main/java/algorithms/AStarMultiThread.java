@@ -9,16 +9,25 @@ import java.util.stream.IntStream;
 
 public class AStarMultiThread implements Runnable {
 
-    private final int[] permutation;
-    private final ArenaMap arenaMap;
-    private double totalCost;
+    private final int[] permutation; // path to be taken
+    private final ArenaMap arenaMap; // map of arena with obstacles and bot
+    private double totalCost; // cost of path to be taken
 
+    /*
+    AStarMultiThread
+    - initialise permutation and arena map
+    - permutation: sequence for visiting obstacles
+     */
     public AStarMultiThread(int[] Permutation, ArenaMap arenaMap) {
         this.permutation = Permutation;
         this.arenaMap = arenaMap;
     }
 
 
+    /*
+    run()
+    - find and set total cost of path for that permutation
+     */
     public void run() {
         ArrayList<Obstacle> list = ArenaMap.getObstacles();
         PlanPath algo = new PlanPath(arenaMap);

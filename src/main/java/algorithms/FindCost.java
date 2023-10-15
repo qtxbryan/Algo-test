@@ -10,7 +10,10 @@ import java.util.ArrayList;
 
 public class FindCost {
 
-
+    /*
+    getPathCost()
+    - find total cost of path for a permutation (sequence for visiting obstacles)
+     */
     public double getPathCost(int[] path, ArrayList<Obstacle> list, PlanPath algo,
                               ArenaMap arenaMap) {
 
@@ -35,7 +38,7 @@ public class FindCost {
         cost = algo.getTotalCost();
         algo.clearCost();
         bot.setCentre(BotConst.ROBOT_INITIAL_CENTER_COORDINATES);
-        bot.setDir(BotConst.ROBOT_DIRECTION.NORTH);
+        bot.setDir(BotConst.ROBOT_INITIAL_DIRECTION);
         return cost;
     }
 }

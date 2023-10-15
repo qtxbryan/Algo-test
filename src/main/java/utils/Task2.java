@@ -16,10 +16,11 @@ public class Task2 {
 
 
   public static void main(String[] args) {
-    comm.connectToRPi();
+//    comm.connectToRPi();
 
     sendMovesToRobot2(start());
     sendMovesToRobot2(smallTurn(0));
+    park(0);
 
     System.out.println("Parked successfully!");
     comm.endConnection();
@@ -34,7 +35,7 @@ public class Task2 {
     return straight;
   }
 
-
+  /** May need to add straight line in middle of the 2 turns, but not sure the straight line how long, might need to receive the variable from android **/
   private static ArrayList<MoveInterface> smallTurn(int dir) {
     ArrayList<MoveInterface> moveList = new ArrayList<>();
 
@@ -173,17 +174,19 @@ public class Task2 {
 
   private static void sendMovesToRobot2(ArrayList<MoveInterface> moveList) {
     String commandsToSend = encodeMoves(moveList);
-    sendToRobot(commandsToSend);
-    List<String> obj = imageAPI.detect();
-    System.out.println(obj.toString());
-    if (obj.get(0).equals("Left")) {
-      dir = 0;
-    }
+//    sendToRobot(commandsToSend);
+    /** Commented for testing without Image **/
+//    List<String> obj = imageAPI.detect();
+//    System.out.println(obj.toString());
+//    if (obj.get(0).equals("Left")) {
+//      dir = 0;
+//    }
+//
+//    if (obj.get(0).equals("Right")) {
+//      dir = 1;
+//    }
 
-    if (obj.get(0).equals("Right")) {
-      dir = 1;
-    }
-
+    dir = 0;
     return;
   }
 

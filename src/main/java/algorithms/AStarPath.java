@@ -54,6 +54,10 @@ public class AStarPath {
                 }
             }
         }
+
+        //Test code
+        System.out.println(shortestPath);
+
         System.out.println("Shortest path cost: " + smallestCost);
         return shortestPath;
     }

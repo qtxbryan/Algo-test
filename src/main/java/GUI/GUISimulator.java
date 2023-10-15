@@ -64,7 +64,7 @@ public class GUISimulator extends Application {
     private static PlanPath planPath;
     private static ArenaMap arenaMap = null;
     private final int width = ArenaConst.ARENA_SIZE;
-    private final int scale = Integer.valueOf(GUIConstant.SIZE * 1 * 2);
+    private final int scale = Integer.valueOf(GUIConstant.SIZE);
     private final int size = width * scale;
     private final int arenaSIze = size / ((ArenaConst.ARENA_SIZE / ArenaConst.OBS_SIZE)
             + ArenaConst.BORDER_SIZE * 2);
@@ -145,7 +145,7 @@ public class GUISimulator extends Application {
         ComboBox<String> directionBox = new ComboBox<>(options);
         directionBox.getSelectionModel().selectFirst();
 
-        Button obstacleButton = new Button("DOOFENSHMIRTZ ATTACKS");
+        Button obstacleButton = new Button("Plot");
         EventHandler<ActionEvent> addObstacle = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 String dir = directionBox.getValue();
@@ -157,7 +157,7 @@ public class GUISimulator extends Application {
         obstacleButton.setOnAction(addObstacle);
         obstacleButton.setMinWidth(30);
 
-        Button simulateButton = new Button("STOP DOOFENSHMIRTZ");
+        Button simulateButton = new Button("End");
         EventHandler<ActionEvent> runSimulation = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 if (timeline != null) {
@@ -222,6 +222,8 @@ public class GUISimulator extends Application {
         SequentialTransition seqT = new SequentialTransition();
 
         planPath.constructMap();
+
+
 
         int[] fastestPath = aStarPath.AStarPath();
         String text = "Shortest path: ";

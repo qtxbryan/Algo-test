@@ -64,12 +64,17 @@ public class Task1 {
     Obstacle next;
     ArrayList<MoveInterface> arrayList;
     int count = 0;
+
     for (int i : path) {
+
+      System.out.println("What is i: " + i);
+
       next = map.get(i);
       System.out.println("---------------Path " + count + "---------------");
       System.out.println(next.getX() + ", " + next.getY());
       arrayList = algo.planPath(startX, startY, startAngle, next.getX(), next.getY(),
           next.getImadeDirectionAngle(), true, true, true);
+
       if (arrayList != null) {
         sendMovesToRobot(arrayList, i);
         int[] coords = algo.getFinalPosition();
@@ -94,31 +99,31 @@ public class Task1 {
     String commandsToSend = encodeMoves(moveList);
 
     sendToRobot(commandsToSend);
-    List<String> obj = imageAPI.detect();
-
-    while ((obj == null || obj.get(0).equals("Bullseye"))
-        || obj.get(1).equals("None") && tryCount > 0) {
-      tryCount--;
-
-      coords = algo.getFinalPosition();
-      backwardCoords = algo.getReversePos(coords[0], coords[1], coords[2] / 90);
-      if (backwardCoords == null) {
-        break;
-      }
-      System.out.println("Reversing to retake picture...");
-      backwardMoveList = algo.planPath(coords[0], coords[1], coords[2], backwardCoords[0],
-          backwardCoords[1],
-          backwardCoords[2] * 90, false, true, true);
-      if (backwardMoveList != null) {
-        commandsToSend = encodeMoves(backwardMoveList);
-
-        sendToRobot(commandsToSend);
-        obj = imageAPI.detect();
-      } else {
-        break;
-      }
-    }
-    sendImageToAndroid(i, obj);
+//    List<String> obj = imageAPI.detect();
+//
+//    while ((obj == null || obj.get(0).equals("Bullseye"))
+//        || obj.get(1).equals("None") && tryCount > 0) {
+//      tryCount--;
+//
+//      coords = algo.getFinalPosition();
+//      backwardCoords = algo.getReversePos(coords[0], coords[1], coords[2] / 90);
+//      if (backwardCoords == null) {
+//        break;
+//      }
+//      System.out.println("Reversing to retake picture...");
+//      backwardMoveList = algo.planPath(coords[0], coords[1], coords[2], backwardCoords[0],
+//          backwardCoords[1],
+//          backwardCoords[2] * 90, false, true, true);
+//      if (backwardMoveList != null) {
+//        commandsToSend = encodeMoves(backwardMoveList);
+//
+//        sendToRobot(commandsToSend);
+//        obj = imageAPI.detect();
+//      } else {
+//        break;
+//      }
+//    }
+//    sendImageToAndroid(i, obj);
   }
 
 
@@ -176,11 +181,11 @@ public class Task1 {
       e.printStackTrace();
     }
     sendPathToAndroid();
-    while (receiveMsg == null || !receiveMsg.equals("A")) {
-      receiveMsg = comm.recieveMsg();
-    }
-
-    System.out.println("Message: " + receiveMsg + "\n");
+//    while (receiveMsg == null || !receiveMsg.equals("A")) {
+//      receiveMsg = comm.recieveMsg();
+//    }
+//
+//    System.out.println("Message: " + receiveMsg + "\n");
     try {
       Thread.sleep(500);
     } catch (InterruptedException e) {

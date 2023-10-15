@@ -3,10 +3,14 @@ package utils;
 import algorithms.MoveInterface;
 import algorithms.StraightLine;
 import algorithms.Turn;
+import robot.BotConst;
 import utils.MsgConst.INSTRUCTION_TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+// import com.ibm.j9ddr.vm29.pointer.generated.rankTableEntryPointer;
 
 public class Task2 {
 
@@ -16,16 +20,311 @@ public class Task2 {
 
 
   public static void main(String[] args) {
+    // sendMovesToRobot2(start());
+    // sendMovesToRobot2(smallTurn(0));
+
     comm.connectToRPi();
+    comm.sendMsg("STM:w 0 30");
 
-    sendMovesToRobot2(start());
-    sendMovesToRobot2(smallTurn(0));
+    // Detect when first wall is reached
+    detectWall();
+    int firstDirection = detectDirection();
+    doFirstMoves(firstDirection);
 
-    System.out.println("Parked successfully!");
+    // Detect when second wall is reached
+    detectWall();
+    int secondDirection = detectDirection();
+    doSecondMoves(secondDirection);
+
+    // Detect when bullseye is reached
+    detectWall();
+    detectBullseye();
+    doParking(secondDirection);
+
     comm.endConnection();
 
     return;
   }
+
+  private static void detectWall() {
+    String receiveMsg = null;
+    while (receiveMsg == null || !receiveMsg.startsWith("ALG")) {
+      receiveMsg = comm.recieveMsg();
+    }
+    System.out.println("Wall detected.");
+    return;
+  }
+
+  private static int detectDirection() {
+    String receiveMsg = null;
+    System.out.println("Waiting to detect direction...");
+
+    while (receiveMsg == null || !receiveMsg.startsWith("ALG")) {
+      receiveMsg = comm.recieveMsg();
+    }
+
+    List<String> obj = imageAPI.detect();
+    String imageId = "";
+
+    int tryCount = 0;
+    // no image detected, try again
+    while (obj.get(0).equals("\"[]\"") && tryCount < 1) {
+      System.out.println("No image, trying to detect again.");
+      obj = imageAPI.detect();
+      tryCount += 1;
+    }
+    
+    if (!obj.get(0).equals("\"[]\"")) {
+      imageId = obj.get(4).replace("\"", "");
+      imageId = imageId.replace("\\", "");
+      System.out.println("Detected image: " + MsgConst.translateImage(Integer.parseInt(imageId)));
+
+      // no arrow detected, try again
+      if (imageId != "38" && imageId != "39") {
+        System.out.println("Not arrow, trying to detect again.");
+        obj = imageAPI.detect();
+        if (!obj.get(0).equals("\"[]\"")) {
+          imageId = obj.get(4).replace("\"", "");
+          imageId = imageId.replace("\\", "");
+          System.out.println("New detected image: " + MsgConst.translateImage(Integer.parseInt(imageId)));
+        }
+      }
+    }
+
+    // right
+    if (imageId == "38") {
+      System.out.println("Right arrow detected.");
+      return 1;
+    }
+    // left
+    else if (imageId == "39") {
+      System.out.println("Left arrow detected.");
+      return 0;
+    }
+    // guess if no arrow detected
+    else {
+      System.out.println("Could not detect arrow, proceeding randomly.");
+      Random random = new Random();
+      return random.nextInt(2);
+    }
+  }
+
+  private static void detectBullseye() {
+    List<String> obj = imageAPI.detect();
+    int tryCount = 0;
+    // no image, try again
+    while (obj.get(0).equals("\"[]\"") && tryCount < 1) {
+      System.out.println("No image, trying to detect again.");
+      obj = imageAPI.detect();
+      tryCount += 1;
+    }
+
+    if (!obj.get(0).equals("\"[]\"")) {
+      String imageId = obj.get(4).replace("\"", "");
+      imageId = imageId.replace("\\", "");
+      
+      // retry if not bullseye
+      if (imageId != "99") {
+        obj = imageAPI.detect();
+        if (!obj.get(0).equals("\"[]\"")) {
+          imageId = obj.get(4).replace("\"", "");
+          imageId = imageId.replace("\\", "");
+        }
+      }
+
+      if (imageId == "99") {
+        System.out.println("Detected bullseye");
+        // return true;
+      }
+    }
+    System.out.println("Could not detect bullseye :-(");
+    // return false;
+  }
+
+  private static void doFirstMoves(int d) {
+    String moves;
+    int diff;
+
+    // left
+    if (d == 0) {
+      moves = "STM:t 2 90";
+
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y < BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X) {
+        diff = (int)((BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X)-(BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y));
+        moves += ",f 0 " + diff;
+      }
+
+      moves += ",t 3 90";
+
+      if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y < 70) {
+        diff = (int)(70-(BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y));
+        moves += ",f 0 " + diff;
+      }
+      else if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y > 70) {
+        diff = (int)((BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y)-70);
+        moves += ",f 1 " + diff;
+      }
+
+      moves += ",t 3 90";
+      
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y > BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X) {
+        diff = (int)((BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y)-(BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X));
+        moves += ",f 0 " + diff;
+      }
+
+      moves += ",t 2 90, w 0 30";
+    }
+    // right
+    else {
+      moves = "STM:t 3 90";
+
+      if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y < BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X) {
+        diff = (int)((BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X)-(BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y));
+        moves += ",f 0 " + diff;
+      }
+
+      moves += ",t 2 90";
+
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_Y < 70) {
+        diff = (int)(70-(BotConst.LEFT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_Y));
+        moves += ",f 0 " + diff;
+      }
+      else if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y > 70) {
+        diff = (int)((BotConst.RIGHT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_Y)-70);
+        moves += ",f 1 " + diff;
+      }
+
+      moves += ",t 2 90";
+      
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y > BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X) {
+        diff = (int)((BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y)-(BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X));
+        moves += ",f 0 " + diff;
+      }
+      
+      moves += ",t 3 90, w 0 30";
+    }
+
+    comm.sendMsg(moves);
+  }
+
+  private static void doSecondMoves(int d) {
+    String moves;
+    int diff;
+
+    // left
+    if (d == 0) {
+      moves = "STM:t 2 90";
+      diff = (int) (70 - BotConst.LEFT_TURN_RADIUS_X - BotConst.RIGHT_TURN_RADIUS_Y);
+      moves += ",f 0 " + diff;
+      moves += ",t 3 90,t 3 90";
+      diff = (int) (140 - BotConst.RIGHT_TURN_RADIUS_X - BotConst.RIGHT_TURN_RADIUS_Y);
+      moves += ",f 0 " + diff;
+      moves += ",t 3 90,t 3 90";
+      if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y < 35) {
+        diff = (int) (35 - BotConst.RIGHT_TURN_RADIUS_X - BotConst.LEFT_TURN_RADIUS_Y);
+        moves += ",f 0 " + diff;
+      }
+      else if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y > 35) {
+        diff = (int) (35 - BotConst.RIGHT_TURN_RADIUS_X - BotConst.LEFT_TURN_RADIUS_Y);
+        moves += ",f 1 " + diff;
+      }
+      moves += ",t 2 90,w 0 30";
+    }
+    // right
+    else {
+      moves = "STM:t 3 90";
+      diff = (int) (70 - BotConst.RIGHT_TURN_RADIUS_X - BotConst.LEFT_TURN_RADIUS_Y);
+      moves += ",f 0 " + diff;
+      moves += ",t 2 90,t 2 90";
+      diff = (int) (140 - BotConst.LEFT_TURN_RADIUS_X - BotConst.LEFT_TURN_RADIUS_Y);
+      moves += ",f 0 " + diff;
+      moves += ",t 2 90,t 2 90";
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y < 35) {
+        diff = (int) (35 - BotConst.LEFT_TURN_RADIUS_X - BotConst.RIGHT_TURN_RADIUS_Y);
+        moves += ",f 0 " + diff;
+      }
+      else if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y > 35) {
+        diff = (int) (35 - BotConst.LEFT_TURN_RADIUS_X - BotConst.RIGHT_TURN_RADIUS_Y);
+        moves += ",f 1 " + diff;
+      }
+      moves += ",t 3 90,w 0 30";
+    }
+
+    comm.sendMsg(moves);
+  }
+
+  private static void doParking(int d) {
+    String parkMoves;
+    int diff;
+
+    // left, end up on right
+    if (d == 0) {
+      parkMoves = "STM:t 3 30";
+
+      if (BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X > 70) {
+        diff = (int) ((BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X) - 70);
+        parkMoves += ",f 1 " + diff;
+      }
+
+      if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y < 35) {
+        diff = (int) (35 - (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y));
+        parkMoves += ",f 0 " + diff;
+      }
+      else if (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y > 35) {
+        diff = (int) (BotConst.RIGHT_TURN_RADIUS_X + BotConst.LEFT_TURN_RADIUS_Y) - 35;
+        parkMoves += ",f 1 " + diff;
+      }
+
+      parkMoves += ",t 2 90";
+      
+      if (BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X < 70) {
+        diff = (int) (70 - (BotConst.RIGHT_TURN_RADIUS_Y + BotConst.LEFT_TURN_RADIUS_X));
+        parkMoves += ",f 0 " + diff;
+      }
+    }
+    // right, end up on left
+    else {
+      parkMoves = "STM:t 2 30";
+
+      if (BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X > 70) {
+        diff = (int) ((BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X) - 70);
+        parkMoves += ",f 1 " + diff;
+      }
+
+      if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y < 35) {
+        diff = (int) (35 - (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y));
+        parkMoves += ",f 0 " + diff;
+      }
+      else if (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y > 35) {
+        diff = (int) (BotConst.LEFT_TURN_RADIUS_X + BotConst.RIGHT_TURN_RADIUS_Y) - 35;
+        parkMoves += ",f 1 " + diff;
+      }
+
+      parkMoves += ",t 3 90";
+      
+      if (BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X < 70) {
+        diff = (int) (70 - (BotConst.LEFT_TURN_RADIUS_Y + BotConst.RIGHT_TURN_RADIUS_X));
+        parkMoves += ",f 0 " + diff;
+      }
+    }
+
+    comm.sendMsg(parkMoves);
+    System.out.println("Parked successfully!");
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   private static ArrayList<MoveInterface> start() {
@@ -170,29 +469,50 @@ public class Task2 {
     return moveList;
   }
 
+  // private static void sendToRobot(String cmd) {
+  //   comm.sendMsg(cmd);
+  //   String receiveMsg = null;
 
-  private static void sendMovesToRobot2(ArrayList<MoveInterface> moveList) {
-    String commandsToSend = encodeMoves(moveList);
-    sendToRobot(commandsToSend);
-    List<String> obj = imageAPI.detect();
-    System.out.println(obj.toString());
-    if (obj.get(0).equals("Left")) {
-      dir = 0;
-    }
+  //   try {
+  //     Thread.sleep(500);
+  //   } catch (InterruptedException e) {
+  //     e.printStackTrace();
+  //   }
+  //   System.out.println("Waiting for reply from robot");
+  //   while (receiveMsg == null || !receiveMsg.equals("A")) {
+  //     receiveMsg = comm.recieveMsg();
+  //   }
 
-    if (obj.get(0).equals("Right")) {
-      dir = 1;
-    }
+  //   System.out.println("Message: " + receiveMsg + "\n");
+  //   try {
+  //     Thread.sleep(500);
+  //   } catch (InterruptedException e) {
+  //     e.printStackTrace();
+  //   }
+  // }
 
-    return;
-  }
+  // private static void sendMovesToRobot2(ArrayList<MoveInterface> moveList) {
+  //   String commandsToSend = encodeMoves(moveList);
+  //   sendToRobot(commandsToSend);
+  //   List<String> obj = imageAPI.detect();
+  //   System.out.println(obj.toString());
+  //   if (obj.get(0).equals("Left")) {
+  //     dir = 0;
+  //   }
+
+  //   if (obj.get(0).equals("Right")) {
+  //     dir = 1;
+  //   }
+
+  //   return;
+  // }
 
 
-  private static void sendMovesToRobotWithoutImageDetection(ArrayList<MoveInterface> moveList) {
-    String commandsToSend = encodeMoves(moveList);
-    sendToRobot(commandsToSend);
-    return;
-  }
+  // private static void sendMovesToRobotWithoutImageDetection(ArrayList<MoveInterface> moveList) {
+  //   String commandsToSend = encodeMoves(moveList);
+  //   sendToRobot(commandsToSend);
+  //   return;
+  // }
 
 
   private static void recvStartSignal() {
@@ -203,28 +523,6 @@ public class Task2 {
     }
     System.out.println("Received start signal");
     return;
-  }
-
-  private static void sendToRobot(String cmd) {
-    comm.sendMsg(cmd);
-    String receiveMsg = null;
-
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    System.out.println("Waiting for reply from robot");
-    while (receiveMsg == null || !receiveMsg.equals("A")) {
-      receiveMsg = comm.recieveMsg();
-    }
-
-    System.out.println("Message: " + receiveMsg + "\n");
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 
   private static String encodeMoves(ArrayList<MoveInterface> moveList) {

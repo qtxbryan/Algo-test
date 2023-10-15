@@ -10,6 +10,9 @@ public abstract class MoveInterface {
     private final boolean isStraightLineMovement;
     private boolean isBack;
 
+    /*
+    interface for path segment
+     */
     public MoveInterface(double curX, double curY, double newX, double newY, int dirDeg,
                          boolean isStraightLineMovement,
                          boolean isBack) {

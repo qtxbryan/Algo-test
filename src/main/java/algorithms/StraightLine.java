@@ -2,6 +2,9 @@ package algorithms;
 
 public class StraightLine extends MoveInterface {
 
+    /*
+    straight line path segment
+     */
     public StraightLine(double x1, double y1, double x2, double y2, int dirInDegrees, boolean isLine,
                         boolean isReversing) {
         super(x1, y1, x2, y2, dirInDegrees, isLine, isReversing);

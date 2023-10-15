@@ -5,8 +5,10 @@ import robot.BotConst;
 
 import java.util.*;
 
+import static robot.BotConst.ROBOT_VIRTUAL_WIDTH;
 
-    public class PlanPath {
+
+public class PlanPath {
 
         private final ArenaMap arenaMap;
         private final int gridCount = (ArenaConst.ARENA_SIZE / ArenaConst.OBS_SIZE)
@@ -35,7 +37,9 @@ import java.util.*;
             return finalPosition;
         }
 
+        /*
 
+         */
         public void clear() {
             visitedMap.clear();
             constructMap();
@@ -52,12 +56,19 @@ import java.util.*;
             priorityQueue.clear();
         }
 
-
+        /*
+        viableGrid()
+        - returns True if no obstacle and not visited yet
+         */
         private boolean viableGrid(Grid grid) {
             return !grid.isPicture() && !grid.isVirtualObstacle() && !grid.isVisited();
         }
 
 
+        /*
+        maxTurnSizeX()
+        - returns max turn radius for X-axis in grid units (assuming North)
+         */
         private int maxTurnSizeX() {
             double gridSize = ArenaConst.OBS_SIZE;
 
@@ -67,7 +78,10 @@ import java.util.*;
             return (int) Math.ceil(largestRadius / gridSize);
         }
 
-
+        /*
+        maxTurnSizeX()
+        - returns max turn radius for Y-axis in grid units (assuming North)
+         */
         private int maxTurnSizeY() {
             double gridSize = ArenaConst.OBS_SIZE;
 
@@ -78,6 +92,10 @@ import java.util.*;
         }
 
 
+        /*
+        getStopPosition()
+        - returns position to stop at before obstacle
+         */
         private int[] getStopPosition(int x, int y, int dir) {
             int dist = AlgConst.DISTANCE_AWAY_FROM_IMAGE;
             int[] coords = new int[3];
@@ -109,6 +127,10 @@ import java.util.*;
         }
 
 
+        /*
+        planPath()
+        - returns shortest path to take using A*
+         */
         public ArrayList<MoveInterface> planPath(int startX, int startY, int startAngle, int pictureX,
                                                  int pictureY,
                                                  int pictureDirInDegrees, boolean isPicturePos, boolean doBacktrack, boolean print) {
@@ -273,6 +295,10 @@ import java.util.*;
             return totalCost;
         }
 
+        /*
+        getForwardNode()
+        - returns node after taking forward step
+         */
         private int[] getForwardNode(int x, int y, int dim) {
             int[] pair;
             switch (dim) {
@@ -299,6 +325,10 @@ import java.util.*;
             }
         }
 
+        /*
+        getBackwardNode()
+        - returns node after taking backward step
+         */
         private int[] getBackwardNode(int x, int y, int dim) {
             int[] pair;
             switch (dim) {
@@ -325,7 +355,10 @@ import java.util.*;
             }
         }
 
-
+        /*
+        getLeftNode()
+        - returns node after making left turn
+         */
         private int[] getLeftNode(int x, int y, int dim, int maxTurnCountX, int maxTurnCountY) {
             int[] pair;
             int[] check;
@@ -353,7 +386,7 @@ import java.util.*;
                     check = null;
                     break;
             }
-            if (pair != null && isValidLocation(pair[0], pair[1], pair[2]) && isValidLocation(check[0],
+            if (pair != null && isValidTurnLocation(pair[0], pair[1], pair[2]) && isValidTurnLocation(check[0],
                     check[1], check[2])) {
                 return pair;
             } else {
@@ -361,6 +394,10 @@ import java.util.*;
             }
         }
 
+        /*
+        getRightNode()
+        - returns node after making right turn
+         */
         private int[] getRightNode(int x, int y, int dim, int maxTurnCountX, int maxTurnCountY) {
             int[] pair;
             int[] check;
@@ -389,7 +426,7 @@ import java.util.*;
                     check = null;
                     break;
             }
-            if (pair != null && isValidLocation(pair[0], pair[1], pair[2]) && isValidLocation(check[0],
+            if (pair != null && isValidTurnLocation(pair[0], pair[1], pair[2]) && isValidTurnLocation(check[0],
                     check[1], check[2])) {
                 return pair;
             } else {
@@ -397,7 +434,10 @@ import java.util.*;
             }
         }
 
-
+        /*
+        heuristic()
+        - returns h for a*
+         */
         private double heuristic(Grid n1, Grid n2, int endDim) {
             int abs1 = Math.abs(n1.getX() - n2.getX());
             int abs2 = Math.abs(n1.getY() - n2.getY());
@@ -406,6 +446,10 @@ import java.util.*;
         }
 
 
+        /*
+        greedy()
+        - returns cost of moving to next position
+         */
         private double greedy(Grid n1, Grid n2) {
             int turnCost = 0;
             int cost = BotConst.MOVE_COST;
@@ -441,6 +485,10 @@ import java.util.*;
         }
 
 
+        /*
+        backtrack()
+        - returns list of all path segments of the final path
+         */
         private ArrayList<MoveInterface> backtrack(Grid end, boolean print) {
             Grid curr, prev;
             ArrayList<Grid> path = new ArrayList<>();
@@ -586,18 +634,74 @@ import java.util.*;
             return gridPathing;
         }
 
-        private boolean isValidLocation(int x, int y, int dim) {
-            if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
-                if (y >= ArenaConst.BORDER_SIZE
-                        && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
-                    Grid n = grid[y][x][dim];
-                    return viableGrid(n);
+        /*
+        isValidTurnLocation()
+        - returns True is aft/before turn position if valid, no obstacles, etc.
+         */
+        private boolean isValidTurnLocation(int x, int y, int dim) {
+//          open arena
+        //    if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+        //        if (y >= ArenaConst.BORDER_SIZE
+        //                && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//          closed arena
+            if (x > ArenaConst.BORDER_SIZE && x < gridCount - ArenaConst.BORDER_SIZE - 1) {
+                if (y > ArenaConst.BORDER_SIZE
+                        && y < gridCount - ArenaConst.BORDER_SIZE - 1) {
+                    int overlap = 0;
+                    for (int x_test = 0; x_test < 3; x_test++) {
+                        for (int y_test = 0; y_test < 3; y_test++) {
+//                          try this
+//                            if (x + x_test - 1 >= ArenaConst.BORDER_SIZE
+//                                    && x + x_test - 1 <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+//                                if (y + y_test - 1 >= ArenaConst.BORDER_SIZE
+//                                        && y + y_test - 1 <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+                                    Grid n = grid[y + y_test - 1][x + x_test - 1][dim];
+                                    if (n.isPicture()) {
+                                        return false;
+                                    } else if (x_test == 1 && y_test == 1 && n.isVisited()) {
+                                        return false;
+                                    } else if (n.isVirtualObstacle()) {
+                                        overlap += 1;
+                                    }
+//                                }
+//                            }
+//                          if (!viableGrid(n)) {
+//                              overlap += 1;
+//                          }
+                        }
+                    }
+                    return overlap <= 1;
                 }
             }
             return false;
         }
 
+    /*
+    isValidLocation()
+    - returns True is position if valid, no obstacles, etc.
+     */
+    private boolean isValidLocation(int x, int y, int dim) {
+//        open arena
+    //    if (x >= ArenaConst.BORDER_SIZE && x <= gridCount - ArenaConst.BORDER_SIZE - 1) {
+    //        if (y >= ArenaConst.BORDER_SIZE
+    //                && y <= gridCount - ArenaConst.BORDER_SIZE - 1) {
 
+//        closed arena
+                if (x > ArenaConst.BORDER_SIZE && x < gridCount - ArenaConst.BORDER_SIZE - 1) {
+                    if (y > ArenaConst.BORDER_SIZE
+                            && y < gridCount - ArenaConst.BORDER_SIZE - 1) {
+
+                    Grid n = grid[y][x][dim];
+                    return viableGrid(n);
+            }
+        }
+        return false;
+    }
+
+        /*
+        constructMap()
+        - construct map with obstacle positions
+         */
         public void constructMap() {
             ArrayList<Obstacle> obstacleList = ArenaMap.getObstacles();
 
@@ -654,11 +758,19 @@ import java.util.*;
             grid[finalPosition[1]][finalPosition[0]][finalPosition[2] / 90].setCost(0, 0);
         }
 
+        /*
+        angleToDimension()
+        - return dim from angle
+        - dim 0: east, 1: north, 2: west, 3: south I THINK
+         */
         private int angleToDimension(int angle) {
             return angle / 90;
         }
 
-
+        /*
+        getVirtualObstaclePairs()
+        - returns [x,y] for all positions within obstacle on arena map
+         */
         private int[][] getVirtualObstaclePairs(int x, int y, int thickness) {
             int numCol = 1 + 2 * thickness;
             int numPairs = numCol * numCol - 1;
@@ -732,7 +844,10 @@ import java.util.*;
             }
         }
 
-
+        /*
+        getReversePos()
+        - returns position after reversing
+         */
         public int[] getReversePos(int x, int y, int dim) {
             int[] pair;
             switch (dim) {
@@ -760,12 +875,31 @@ import java.util.*;
         }
 
 
+        /*
+        canGo()
+        - returns True is position is valid - no obstacle/picture
+         */
         private boolean canGo(int x, int y, int dim) {
-            if (x >= 0 && x < gridCount && y >= 0 && y < gridCount) {
-                Grid n = grid[y][x][dim];
-                return !n.isPicture() && !n.isVirtualObstacle();
-            } else {
-                return false;
+//            open arena
+            //    if (x >= 0 && x < gridCount && y >= 0 && y < gridCount) {
+//            closed arena
+                if (x > 0 && x < gridCount-1 && y > 0 && y < gridCount-1) {
+//              ignore this
+//                    for (int x_test = 0; x_test < 3; x_test++) {
+//                        for (int y_test = 0; y_test < 3; y_test++) {
+//                            Grid n = grid[y+y_test-1][x+x_test-1][dim];
+//                            if (n.isPicture() || n.isVirtualObstacle()) {
+//                                return false;
+//                            }
+//                        }
+//                    }
+//                    return true;
+//              ignore until here
+                    Grid n = grid[y][x][dim];
+                    return !n.isPicture() && !n.isVirtualObstacle();
+                } else {
+                    return false;
+                }
             }
-        }
+
 }

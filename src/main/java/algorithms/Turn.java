@@ -6,6 +6,9 @@ public class Turn extends MoveInterface {
     private final double turnRadiusY;
     private final boolean leftTurn;
 
+    /*
+    turn path segment
+     */
     public Turn(double x1, double y1, double x2, double y2, int dirInDegrees, double turnRadiusX,
                 double turnRadiusY, boolean isLine, boolean leftTurn) {
         super(x1, y1, x2, y2, dirInDegrees, isLine, false);

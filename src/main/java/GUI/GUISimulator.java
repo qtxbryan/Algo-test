@@ -105,8 +105,8 @@ public class GUISimulator extends Application {
         LinearGradient lg1 = new LinearGradient(0.7, 0, 1, 0, true, CycleMethod.NO_CYCLE, stop);
         bot.setFill(lg1);
         bot.setStrokeWidth(20);
-        Image perry1 = new Image("file:///Users/bryantan/Desktop/Algorithm-main/src/main/java/optimusPrime.jpeg");
-        Image perry2 = new Image("file:///Users/bryantan/Desktop/Algorithm-main/src/main/java/optimusPrime.jpeg");
+        Image perry1 = new Image("file:///Users/vivienneching/Downloads/Algo-test-master/src/main/java/optimusPrime.jpeg");
+        Image perry2 = new Image("file:///Users/vivienneching/Downloads/Algo-test-master/src/main/java/optimusPrime.jpeg");
 
         Timeline anyaTimeLine = new Timeline(
                 new KeyFrame(Duration.seconds(0.5), e -> bot.setFill(new ImagePattern(perry1))),
@@ -145,7 +145,7 @@ public class GUISimulator extends Application {
         ComboBox<String> directionBox = new ComboBox<>(options);
         directionBox.getSelectionModel().selectFirst();
 
-        Button obstacleButton = new Button("DOOFENSHMIRTZ ATTACKS");
+        Button obstacleButton = new Button("PLACE OBSTACLE");
         EventHandler<ActionEvent> addObstacle = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 String dir = directionBox.getValue();
@@ -157,7 +157,7 @@ public class GUISimulator extends Application {
         obstacleButton.setOnAction(addObstacle);
         obstacleButton.setMinWidth(30);
 
-        Button simulateButton = new Button("STOP DOOFENSHMIRTZ");
+        Button simulateButton = new Button("START");
         EventHandler<ActionEvent> runSimulation = new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 if (timeline != null) {
@@ -183,11 +183,43 @@ public class GUISimulator extends Application {
                                     }
                                 }));
                 timeline.playFromStart();
-                runSimulation(shortestPathLabel, bot, timeline);
+                runSimulation(shortestPathLabel, bot, timeline,true);
             }
         };
 
         simulateButton.setOnAction(runSimulation);
+
+        Button simulateOtherButton = new Button("OTHER");
+        EventHandler<ActionEvent> runOtherSimulation = new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                if (timeline != null) {
+                    timeline.stop();
+                }
+                timeSeconds = 0;
+
+                timerLabel.setText("Time: " + Math.round(timeSeconds * 100.0) / 100.0);
+                timeline = new Timeline();
+                timeline.setCycleCount(Timeline.INDEFINITE);
+                timeline.getKeyFrames().add(
+                        new KeyFrame(Duration.millis(1),
+                                new EventHandler<ActionEvent>() {
+
+                                    public void handle(ActionEvent event) {
+                                        timeSeconds += .001;
+
+                                        timerLabel.setText("Time: " +
+                                                Math.round(timeSeconds * 100.0) / 100.0);
+                                        if (timeSeconds >= 360) {
+                                            timeline.stop();
+                                        }
+                                    }
+                                }));
+                timeline.playFromStart();
+                runSimulation(shortestPathLabel, bot, timeline,false);
+            }
+        };
+
+        simulateOtherButton.setOnAction(runOtherSimulation);
 
         GridPane buttonBar = new GridPane();
         buttonBar.setAlignment(Pos.CENTER);
@@ -199,8 +231,10 @@ public class GUISimulator extends Application {
         buttonBar.add(directionBox, 2, 1);
         buttonBar.add(obstacleButton, 0, 2, 3, 1);
         buttonBar.add(simulateButton, 3, 2, 3, 1);
+        buttonBar.add(simulateOtherButton, 6, 2, 3, 1);
         obstacleButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         simulateButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        simulateOtherButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         ColumnConstraints cc = new ColumnConstraints();
         cc.setPercentWidth(15);
         buttonBar.getColumnConstraints().addAll(cc, cc, cc, cc);
@@ -216,15 +250,23 @@ public class GUISimulator extends Application {
 
     }
 
-    public void runSimulation(Label label, Rectangle robot, Timeline timeline) {
+    public void runSimulation(Label label, Rectangle robot, Timeline timeline, Boolean fast) {
         ArrayList<ArrayList<MoveInterface>> moveList = new ArrayList<>();
         ArrayList<map.Obstacle> pictureList = ArenaMap.getObstacles();
         SequentialTransition seqT = new SequentialTransition();
 
-        planPath.constructMap();
+        int[] fastestPath;
+        String text;
 
-        int[] fastestPath = aStarPath.AStarPath();
-        String text = "Shortest path: ";
+        planPath.constructMap();
+        if (fast) {
+            fastestPath = aStarPath.AStarPath(true);
+            text = "Shortest path: ";
+        }
+        else {
+            fastestPath = aStarPath.AStarPath(false);
+            text = "Shortest path: ";
+        }
         int[] startCoords = new int[3];
         startCoords[0] = bot.getX();
         startCoords[1] = bot.getY();
@@ -381,8 +423,8 @@ public class GUISimulator extends Application {
             int yPos = y * arenaSIze;
 
             obstacle = new Rectangle(xPos, yPos, arenaSIze, arenaSIze);
-            Image doof1 = new Image("file:///Users/bryantan/Desktop/Algorithm-main/src/main/java/obstacle1.jpeg");
-            Image doof2 = new Image("file:///Users/bryantan/Desktop/Algorithm-main/src/main/java/obstacle1.jpeg");
+            Image doof1 = new Image("file:///Users/vivienneching/Downloads/Algo-test-master/src/main/java/obstacle1.jpeg");
+            Image doof2 = new Image("file:///Users/vivienneching/Downloads/Algo-test-master/src/main/java/obstacle1.jpeg");
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(0.5), e -> obstacle.setFill(new ImagePattern(doof1))),
                     new KeyFrame(Duration.seconds(1.0), e -> obstacle.setFill(new ImagePattern(doof2)))

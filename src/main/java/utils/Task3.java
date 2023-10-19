@@ -8,51 +8,118 @@ public class Task3 {
 
   static MsgMgr comm = MsgMgr.getCommMgr();
   static ImageAPI imageAPI = new ImageAPI();
+  static int count = 0;
 
   public static void main(String[] args) {
 
     System.out.println("Waiting to connect with RPi...");
     comm.connectToRPi();
 
-    ArrayList<Integer> image_details = detectImage();
-    String forward_command = getForwardCommand(image_details);
-    // int d1 = image_details.get(1) + 20;
+    int a1 = 0;
+    int a2 = 1;
 
     start();
+
+    ArrayList<Integer> image_details = detectImage();
+    // String forward_command = getForwardCommand(image_details);
+    int d1 = image_details.get(1) + 20;
     
     // Robot detected left arrow
     if (image_details.get(0) == 0) {
-      sendToRobot("STM:" + forward_command + ",LR00");
+      // sendToRobot("STM:" + forward_command + ",LR00");
+      if (d1 <= 40) {
+        sendToRobot("STM:W020,LR00");  
+      }
+      else if (d1 < 130) {
+        sendToRobot("STM:K0" + (d1-40) + ",LR00");  
+      }
+      else {
+        sendToRobot("STM:K" + (d1-40) + ",LR00");
+      }
     }
     // Robot detected right arrow
     else {
-      sendToRobot("STM:" + forward_command + ",RL00");
+      // sendToRobot("STM:" + forward_command + ",RL00");
+      if (d1 <= 40) {
+        sendToRobot("STM:W020,RL00");  
+      }
+      else if (d1 < 130) {
+        sendToRobot("STM:K0" + (d1-40) + ",RL00");  
+      }
+      else {
+        sendToRobot("STM:K" + (d1-40) + ",RL00");
+      }
     }
 
     waitForRobotToMove();
 
     image_details = detectImage();
     int d2 = image_details.get(1) + 20;
-    forward_command = getForwardCommand(image_details);
+    // forward_command = getForwardCommand(image_details);
 
-    // Robot detected left arrow
-    if (image_details.get(0) == 0) {
-      sendToRobot("STM:" + forward_command + ",LL00");
-    }
-    // Robot detected right arrow
-    else { 
-      sendToRobot("STM:" + forward_command + ",RR00");
-    }
+    // // Robot detected left arrow
+    // if (image_details.get(0) == 0) {
+    //   // sendToRobot("STM:" + forward_command + ",LL00");
+    //   sendToRobot("STM:W020,LL00");
+    // }
+    // // Robot detected right arrow
+    // else { 
+    //   sendToRobot("STM:" + forward_command + ",RR00");
+    //   sendToRobot("STM:W020,RR00");
+    // }
 
-    waitForRobotToMove();
+    // waitForRobotToMove();
 
     // ADJUST THIS FOR ROBOT COMING BACK MOVEMENT
-    int final_d = d2 + 40 + 35;
+    int final_d = d2 + 80;
+
     if (final_d < 100) {
-      sendToRobot("STM:F0" + final_d + ",Z090");
+      if (image_details.get(0) == 0) {
+        if (d2 <= 40) {
+          sendToRobot("STM:L0" + final_d);
+        }
+        else if (d2 < 140) {
+          sendToRobot("STM:F0" + (d2-40) + ",L0" + final_d);
+        }
+        else {
+          sendToRobot("STM:F" + (d2-40) + ",L0" + final_d);
+        }
+      }
+      else {
+        if (d2 <= 40) {
+          sendToRobot("STM:R0" + final_d);
+        }
+        else if (d2 < 140) {
+          sendToRobot("STM:F0" + (d2-40) + ",R0" + final_d);
+        }
+        else {
+          sendToRobot("STM:F" + (d2-40) + ",R0" + final_d);
+        }
+      }
     }
     else {
-      sendToRobot("STM:F" + final_d + ",Z090");
+      if (image_details.get(0) == 0) {
+        if (d2 <= 40) {
+          sendToRobot("STM:L" + final_d);
+        }
+        else if (d2 < 140) {
+          sendToRobot("STM:F0" + (d2-40) + ",L" + final_d);
+        }
+        else {
+          sendToRobot("STM:F" + (d2-40) + ",L" + final_d);
+        }
+      }
+      else {
+        if (d2 <= 40) {
+          sendToRobot("STM:R" + final_d);
+        }
+        else if (d2 < 140) {
+          sendToRobot("STM:F0" + (d2-40) + ",R" + final_d);
+        }
+        else {
+          sendToRobot("STM:F" + (d2-40) + ",R" + final_d);
+        }
+      }
     }
 
     comm.endConnection();
@@ -120,13 +187,44 @@ public class Task3 {
 
       // give random number since wrong image detected
       else {
-        Random random = new Random();
-        image_info.add(random.nextInt(2));
+        obj = imageAPI.detect();
+        if (!obj.get(0).equals("\"[]\"")) {
+          imageId = obj.get(4).replace("\"", "");
+          imageId = imageId.replace("\\", "");
+          image_width = Integer.parseInt(obj.get(2)) - Integer.parseInt(obj.get(0).replace("\"[[", ""));
+
+          // right arrow detected
+          if (Integer.parseInt(imageId) == 38) {
+            System.out.println("Right arrow detected.");
+            image_info.add(1);
+          }
+
+          // left arrow detected
+          else if (Integer.parseInt(imageId) == 39) {
+            System.out.println("Left arrow detected.");
+            image_info.add(0);
+          }
+
+          else {
+            Random random = new Random();
+            image_info.add(random.nextInt(2));
+          }
+        }
+        else {
+          Random random = new Random();
+          image_info.add(random.nextInt(2));
+        }
       }
       
       image_dist = getDistanceByImageWidth(image_width);
+      System.out.println("Detected distance: " + image_dist + "cm");
       dist_to_move = image_dist - 20;
       image_info.add(dist_to_move);
+    }
+    else {
+      Random random = new Random();
+      image_info.add(random.nextInt(2));
+      image_info.add(40);
     }
 
     return image_info;
@@ -165,20 +263,23 @@ public class Task3 {
    * Returns image distance from robot based on image width
    */
   private static int getDistanceByImageWidth(int width) {
-    if (width >= 110) { return 10; }
+    if (width >= 160) { return 0; }
+    else if (width >= 110) { return 10; }
     else if (width >= 78) { return 20; }
     else if (width >= 60) { return 30; }
     else if (width >= 50) { return 40; }
     else if (width >= 43) { return 50; }
-    else if (width >= 37) { return 60; }
+    else if (width >= 36) { return 60; }
     else if (width >= 32) { return 70; }
     else if (width >= 29) { return 80; }
     else if (width >= 27) { return 90; }
     else if (width >= 25) { return 100; }
     else if (width >= 23) { return 110; }
-    else if (width >= 22) { return 120; }
-    else if (width >= 21) { return 130; }
-    else if (width >= 20) { return 140; }
-    else { return 150; }
+    else if (width >= 21) { return 120; }
+    else if (width >= 20) { return 130; }
+    else if (width >= 19) { return 140; }
+    // 150: 18
+    else if (width >= 13) { return 150; }
+    else { return 0; }
   }
 }

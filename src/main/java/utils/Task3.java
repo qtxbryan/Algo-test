@@ -15,9 +15,6 @@ public class Task3 {
     System.out.println("Waiting to connect with RPi...");
     comm.connectToRPi();
 
-    int a1 = 0;
-    int a2 = 1;
-
     start();
 
     ArrayList<Integer> image_details = detectImage();
@@ -71,7 +68,7 @@ public class Task3 {
     // waitForRobotToMove();
 
     // ADJUST THIS FOR ROBOT COMING BACK MOVEMENT
-    int final_d = d2 + 80;
+    int final_d = d2 + 80 - 1;
 
     if (final_d < 100) {
       if (image_details.get(0) == 0) {
@@ -184,37 +181,6 @@ public class Task3 {
         System.out.println("Left arrow detected.");
         image_info.add(0);
       }
-
-      // give random number since wrong image detected
-      else {
-        obj = imageAPI.detect();
-        if (!obj.get(0).equals("\"[]\"")) {
-          imageId = obj.get(4).replace("\"", "");
-          imageId = imageId.replace("\\", "");
-          image_width = Integer.parseInt(obj.get(2)) - Integer.parseInt(obj.get(0).replace("\"[[", ""));
-
-          // right arrow detected
-          if (Integer.parseInt(imageId) == 38) {
-            System.out.println("Right arrow detected.");
-            image_info.add(1);
-          }
-
-          // left arrow detected
-          else if (Integer.parseInt(imageId) == 39) {
-            System.out.println("Left arrow detected.");
-            image_info.add(0);
-          }
-
-          else {
-            Random random = new Random();
-            image_info.add(random.nextInt(2));
-          }
-        }
-        else {
-          Random random = new Random();
-          image_info.add(random.nextInt(2));
-        }
-      }
       
       image_dist = getDistanceByImageWidth(image_width);
       System.out.println("Detected distance: " + image_dist + "cm");
@@ -222,9 +188,34 @@ public class Task3 {
       image_info.add(dist_to_move);
     }
     else {
-      Random random = new Random();
-      image_info.add(random.nextInt(2));
-      image_info.add(40);
+      sendToRobot("STM:B020");
+      obj = imageAPI.detect();
+      if (!obj.get(0).equals("\"[]\"")) {
+        imageId = obj.get(4).replace("\"", "");
+        imageId = imageId.replace("\\", "");
+        image_width = Integer.parseInt(obj.get(2)) - Integer.parseInt(obj.get(0).replace("\"[[", ""));
+
+        // right arrow detected
+        if (Integer.parseInt(imageId) == 38) {
+          System.out.println("Right arrow detected.");
+          image_info.add(1);
+        }
+
+        // left arrow detected
+        else if (Integer.parseInt(imageId) == 39) {
+          System.out.println("Left arrow detected.");
+          image_info.add(0);
+        }
+        // image_dist = getDistanceByImageWidth(image_width);
+        // System.out.println("Detected distance: " + image_dist + "cm");
+        // dist_to_move = image_dist - 20 - 20;
+        image_info.add(0);
+      }
+      else {
+        Random random = new Random();
+        image_info.add(random.nextInt(2));
+        image_info.add(0);
+      }
     }
 
     return image_info;
@@ -263,8 +254,8 @@ public class Task3 {
    * Returns image distance from robot based on image width
    */
   private static int getDistanceByImageWidth(int width) {
-    if (width >= 160) { return 0; }
-    else if (width >= 110) { return 10; }
+    if (width >= 140) { return 0; }
+    else if (width >= 100) { return 10; }
     else if (width >= 78) { return 20; }
     else if (width >= 60) { return 30; }
     else if (width >= 50) { return 40; }

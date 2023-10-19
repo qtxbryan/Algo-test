@@ -17,7 +17,7 @@ public class Task3 {
 
     start();
 
-    ArrayList<Integer> image_details = detectImage();
+    ArrayList<Integer> image_details = detectImage(0);
     // String forward_command = getForwardCommand(image_details);
     int d1 = image_details.get(1) + 20;
     
@@ -50,7 +50,7 @@ public class Task3 {
 
     waitForRobotToMove();
 
-    image_details = detectImage();
+    image_details = detectImage(1);
     int d2 = image_details.get(1) + 20;
     // forward_command = getForwardCommand(image_details);
 
@@ -157,7 +157,7 @@ public class Task3 {
    * Return image info in list (imageId, dist_to_move)
    *  -> dist_to_move < 0 if backward move needed
    */
-  private static ArrayList<Integer> detectImage() {
+  private static ArrayList<Integer> detectImage(int a) {
     System.out.println("Detecting direction...");
 
     List<String> obj = imageAPI.detect();
@@ -171,7 +171,7 @@ public class Task3 {
       image_width = Integer.parseInt(obj.get(2)) - Integer.parseInt(obj.get(0).replace("\"[[", ""));
 
       // right arrow detected
-      if (Integer.parseInt(imageId) == 38) {
+      if (Integer.parseInt(imageId) == 38 || Integer.parseInt(imageId) == 37) {
         System.out.println("Right arrow detected.");
         image_info.add(1);
       }
@@ -188,7 +188,9 @@ public class Task3 {
       image_info.add(dist_to_move);
     }
     else {
-      sendToRobot("STM:B020");
+      if (a != 0) {
+        sendToRobot("STM:B020");
+      }
       obj = imageAPI.detect();
       if (!obj.get(0).equals("\"[]\"")) {
         imageId = obj.get(4).replace("\"", "");
@@ -196,7 +198,7 @@ public class Task3 {
         image_width = Integer.parseInt(obj.get(2)) - Integer.parseInt(obj.get(0).replace("\"[[", ""));
 
         // right arrow detected
-        if (Integer.parseInt(imageId) == 38) {
+        if (Integer.parseInt(imageId) == 38 || Integer.parseInt(imageId) == 37) {
           System.out.println("Right arrow detected.");
           image_info.add(1);
         }
@@ -206,10 +208,16 @@ public class Task3 {
           System.out.println("Left arrow detected.");
           image_info.add(0);
         }
-        // image_dist = getDistanceByImageWidth(image_width);
-        // System.out.println("Detected distance: " + image_dist + "cm");
-        // dist_to_move = image_dist - 20 - 20;
-        image_info.add(0);
+
+        if (a == 0) {
+          image_dist = getDistanceByImageWidth(image_width);
+          System.out.println("Detected distance: " + image_dist + "cm");
+          dist_to_move = image_dist - 20 - 20;
+          image_info.add(dist_to_move);
+        }
+        else {
+          image_info.add(0);
+        }
       }
       else {
         Random random = new Random();
